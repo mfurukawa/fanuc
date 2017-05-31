@@ -119,3 +119,27 @@ BEGIN
 		a[d_] = rad_to_deg(a[d_])
 	ENDFOR
 END arr_rad2deg
+
+
+ROUTINE arr2xyzwpr
+VAR
+	len_ : INTEGER
+	d_ : INTEGER
+BEGIN
+	p.X = a[1] -- mm
+	p.Y = a[2] -- mm
+	p.Z = a[3] -- mm
+	p.W = a[4] -- deg
+	p.P = a[5] -- deg
+	p.R = a[6] -- deg
+
+	-- reference B-83284JA/02 p.149 
+	-- Masahiro Furukawa 
+	p.CONFIG_DATA.CFG_TURN_NO1 = 0
+	p.CONFIG_DATA.CFG_TURN_NO2 = 0
+	p.CONFIG_DATA.CFG_TURN_NO3 = 0
+	p.CONFIG_DATA.CFG_FLIP = FALSE
+	p.CONFIG_DATA.CFG_LEFT = FALSE
+	p.CONFIG_DATA.CFG_UP = FALSE
+	p.CONFIG_DATA.CFG_FRONT = FALSE
+END arr2xyzwpr

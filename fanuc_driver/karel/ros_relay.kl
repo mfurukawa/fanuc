@@ -134,15 +134,7 @@ CONST
 	MOVE_SPEED   =   20  -- speed to use with ros_movesm (percentage of maximum)
 	MOVE_CNT     =   50  -- CNT value to use with ros_movesm
 
-	LOOP_HZ      =   42  -- Main loop freq (Hz).
-	                     -- Note: we configure 42 Hz here, as due to ITP-bound
-	                     --       scheduling, anything below this (or actually
-	                     --       below 41.67 Hz) will result in an effective
-	                     --       frequency of 27 (for 12ms ITPs) or 31 Hz
-	                     --       (for 8ms ITPs). See also issue 203 on GH.
-	                     -- Note: this is less of a problem in this particular
-	                     --       task, as trajectory segments are typically
-	                     --       much longer (in time) than the ITP.
+	LOOP_HZ      =   40  -- Hz
 
 	-- ros_movesm interface defaults:
 	MOVE_PREG    =    1  -- position register for current point
@@ -478,26 +470,29 @@ END remove_ah_
 ROUTINE exec_move_
 VAR
 	stat__       : INTEGER
-	new_j_pos__  : JOINTPOS
+	--new_j_pos__  : JOINTPOS
+	new_xyzwpr__  : XYZWPR
 BEGIN
 	-- ROS sends radians, so convert
-	arr_rad2deg(pkt.joint_data_)
+	--arr_rad2deg(pkt.joint_data_)
+	arr2xyzwpr(pkt.joint_data_, new_xyzwpr__)
 
 	-- convert reals to jointpos
-	CNV_REL_JPOS(pkt.joint_data_, new_j_pos__, stat__)
-	IF (stat__ <> 0) THEN RETURN (-stat__); ENDIF
+	--CNV_REL_JPOS(pkt.joint_data_, new_j_pos__, stat__)
+	--IF (stat__ <> 0) THEN RETURN (-stat__); ENDIF
 
 	-- check to make sure point can be reached before performing motion
-	IF (NOT J_IN_RANGE(new_j_pos__)) THEN
-		RETURN (MOVERR_OOR)
-	ENDIF
+	--IF (NOT J_IN_RANGE(new_j_pos__)) THEN
+	--	RETURN (MOVERR_OOR)
+	--ENDIF
 
 	-- sync
 	WAIT FOR (FLG[cfg.f_msm_rdy] = ON)
 
 	-- setup registers
 	-- init position
-	SET_JPOS_REG(cfg.pr_move, new_j_pos__, stat__)
+	--SET_JPOS_REG(cfg.pr_move, new_j_pos__, stat__)
+	SET_POS_REG(cfg.pr_move, new_xyzwpr__, stat__)
 	IF (stat__ <> 0) THEN RETURN (-stat__); ENDIF
 
 	-- init motion speed (from config)
