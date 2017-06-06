@@ -47,6 +47,18 @@ PROGRAM libssock
 %NOLOCKGROUP
 %NOPAUSE= COMMAND + TPENABLE + ERROR
 %COMMENT = 'r1'
+-- Masahiro Furukawa
+-- June 6, 2017
+-- p.107
+-- Karel Reference
+%ENVIRONMENT uif
+%ENVIRONMENT sysdef
+%ENVIRONMENT memo
+%ENVIRONMENT kclop
+%ENVIRONMENT bynam
+%ENVIRONMENT fdev
+%ENVIRONMENT flbt
+
 
 
 
