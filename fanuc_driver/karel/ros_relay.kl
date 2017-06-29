@@ -60,7 +60,7 @@ PROGRAM ros_relay
 -- 
 --------------------------------------------------------------------------------
 %ALPHABETIZE
-%COMMENT = 'r23'
+%COMMENT = 'delay 20000'
 %NOBUSYLAMP
 %NOLOCKGROUP
 %NOPAUSE = COMMAND + TPENABLE + ERROR
@@ -181,6 +181,15 @@ ROUTINE send_err_(pkt_in : ind_pkt_t; pkt_out : ind_pkt_t; sock_fd : FILE) : INT
 -- 
 --------------------------------------------------------------------------------
 BEGIN
+	-- Masahiro Furukawa June 27, 2017
+	
+	log_info(LOG_PFIX + 'Waiting for TAG 15...')
+	DELAY 5000
+	log_info(LOG_PFIX + 'Waiting for TAG 10...')
+	DELAY 5000
+	log_info(LOG_PFIX + 'Waiting for TAG 5...')
+	DELAY 5000
+	
 	-- check config
 	stat_ = check_cfg_(cfg_)
 	IF (stat_ <> CFG_OK) THEN
