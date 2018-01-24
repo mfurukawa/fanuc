@@ -122,7 +122,7 @@ BEGIN
 	-- set up ROS-Industrial packet fields
 	USING this DO
 		-- default to JOINT_POSITION size
-		length_     = (RI_SZ_HDR + RI_SZB_JPOS)
+		length_     = (RI_SZB_JPOS)
 		msg_type_   =  0
 		comm_type_  =  0
 		reply_type_ =  0
@@ -141,57 +141,6 @@ VAR
 	stat__     : INTEGER
 	array_sz__ : INTEGER
 BEGIN
-	
-	--i__ = 0
-	--stat__ = 0
-	--array_sz__ = ARRAY_LEN(this.joint_data_)
---
-	---- make sure pkt len is correct
-	--IF (this.msg_type_ = RI_MT_JTRAJP) THEN
-		--this.length_ = (RI_SZ_HDR + RI_SZB_TRAJP)
-	--ENDIF
---
-	---- write out all fields ..
-	--WRITE fd(this.length_)
-	--stat__ = IO_STATUS(fd)
-	--IF stat__ <> 0 THEN RETURN (-stat__); ENDIF
-		--
-	--WRITE fd(this.msg_type_)
-	--stat__ = IO_STATUS(fd)
-	--IF stat__ <> 0 THEN RETURN (-stat__); ENDIF
---
-	--WRITE fd(this.comm_type_)
-	--stat__ = IO_STATUS(fd)
-	--IF stat__ <> 0 THEN RETURN (-stat__); ENDIF
---
-	--WRITE fd(this.reply_type_)
-	--stat__ = IO_STATUS(fd)
-	--IF stat__ <> 0 THEN RETURN (-stat__); ENDIF
---
-	--WRITE fd(this.seq_nr_)
-	--stat__ = IO_STATUS(fd)
-	--IF stat__ <> 0 THEN RETURN (-stat__); ENDIF
---
-	---- now the array
-	--FOR i__ = 1 TO array_sz__ DO
-		--WRITE fd(this.joint_data_[i__])
---
-		---- check
-		--stat__ = IO_STATUS(fd)
-		--IF stat__ <> 0 THEN RETURN (-stat__); ENDIF
-	--ENDFOR
---
-	---- 
-	--IF (this.msg_type_ = RI_MT_JTRAJP) THEN
-		--WRITE fd(this.velocity_)
-		--stat__ = IO_STATUS(fd)
-		--IF stat__ <> 0 THEN RETURN (-stat__); ENDIF
---
-		--WRITE fd(this.duration_)
-		--stat__ = IO_STATUS(fd)
-		--IF stat__ <> 0 THEN RETURN (-stat__); ENDIF
-	--ENDIF
-
 	-- .. and end with a CR
 	WRITE fd(1) -- ACKNOWLEDGEMENT (4byte)
 	WRITE fd(CR)
@@ -213,29 +162,8 @@ BEGIN
 	--
 	i__ = 0
 	stat__ = 0
-	array_sz__ = ARRAY_LEN(this.joint_data_)
-
-	-- read in all fields ..
-	READ fd(this.length_)
-	stat__ = IO_STATUS(fd)
-	IF stat__ <> 0 THEN RETURN (-stat__); ENDIF
-
-	READ fd(this.msg_type_)
-	stat__ = IO_STATUS(fd)
-	IF stat__ <> 0 THEN RETURN (-stat__); ENDIF
-
-	READ fd(this.comm_type_)
-	stat__ = IO_STATUS(fd)
-	IF stat__ <> 0 THEN RETURN (-stat__); ENDIF
-
-	READ fd(this.reply_type_)
-	stat__ = IO_STATUS(fd)
-	IF stat__ <> 0 THEN RETURN (-stat__); ENDIF
-
-	READ fd(this.seq_nr_)
-	stat__ = IO_STATUS(fd)
-	IF stat__ <> 0 THEN RETURN (-stat__); ENDIF
-
+	array_sz__ = 6
+	
 	-- now the array
 	FOR i__ = 1 TO array_sz__ DO
 		READ fd(this.joint_data_[i__])
@@ -245,61 +173,14 @@ BEGIN
 		IF stat__ <> 0 THEN RETURN (-stat__); ENDIF
 	ENDFOR
 
-	-- 
-	IF (this.msg_type_ = RI_MT_JTRAJP) &
-		AND (this.length_ >= (RI_SZ_HDR + RI_SZB_TRAJP)) 
-	THEN
-		READ fd(this.velocity_)
-		stat__ = IO_STATUS(fd)
-		IF stat__ <> 0 THEN RETURN (-stat__); ENDIF
-
-		READ fd(this.duration_)
-		stat__ = IO_STATUS(fd)
-		IF stat__ <> 0 THEN RETURN (-stat__); ENDIF
-	ENDIF
-
-	-- done
-	stat__ = IO_STATUS(fd)
 	RETURN (-stat__)
 END ipkt_dsrlse
 
 
 
-
-ROUTINE ipkt_tostr
-VAR
-	len_str__ : STRING[20]
-	mt_str__  : STRING[20]
-	ct_str__  : STRING[20]
-	rt_str__  : STRING[20]
-	nr_str__  : STRING[30]
-BEGIN
-	-- TODO: check for 'uninitialised' data and handle 
-	--       those (add 'unknown' or something)
-	CNV_INT_STR(this.length_     , 1, 10, len_str__)
-	CNV_INT_STR(this.msg_type_   , 1, 10, mt_str__)
-	CNV_INT_STR(this.comm_type_  , 1, 10, ct_str__)
-	CNV_INT_STR(this.reply_type_ , 1, 10, rt_str__)
-	CNV_INT_STR(this.seq_nr_     , 1, 10, nr_str__)
-
-	-- done
-	RETURN ('pkt (l,mt,ct,rt,seq):' + len_str__ + ';' + mt_str__ + ';' &
-		+ ct_str__ + ';' + rt_str__ + ';' + nr_str__)
-END ipkt_tostr
-
-
-
-
-ROUTINE ipkt_dump
-BEGIN
-	WRITE fd(ipkt_tostr(this), CR)
-END ipkt_dump
-
-
-
-
 ROUTINE ipkt_checkfd
 VAR
+	i__        : INTEGER
 	stat__      : INTEGER
 	bytes_ahd__ : INTEGER
 BEGIN
@@ -312,10 +193,11 @@ BEGIN
 	IF stat__ <> 0 THEN RETURN (-stat__); ENDIF
 
 	-- is there enough for a packet?
-	IF (bytes_ahd__ >= (RI_SZ_HDR + RI_SZB_JPOS)) THEN
+	IF (bytes_ahd__ >= (RI_SZB_JPOS)) THEN
 
 		-- deserialise
 		stat__ = ipkt_dsrlse(pkt, fd)
+		
 		IF stat__ <> 0 THEN RETURN (-ABS(stat__)); ENDIF
 
 		-- notify user of packet we deserialised
