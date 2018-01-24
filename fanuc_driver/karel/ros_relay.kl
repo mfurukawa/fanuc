@@ -182,13 +182,7 @@ ROUTINE send_err_(pkt_in : ind_pkt_t; pkt_out : ind_pkt_t; sock_fd : FILE) : INT
 --------------------------------------------------------------------------------
 BEGIN
 	-- Masahiro Furukawa June 27, 2017
-	
-	-- log_info(LOG_PFIX + 'Waiting for TAG 15...')
-	-- DELAY 5000
-	-- log_info(LOG_PFIX + 'Waiting for TAG 10...')
-	-- DELAY 5000
-	-- log_info(LOG_PFIX + 'Waiting for TAG 5...')
-	-- DELAY 5000
+	-- Masahiro Furukawa Jan 24, 2018
 	
 	-- check config
 	stat_ = check_cfg_(cfg_)
@@ -290,51 +284,51 @@ BEGIN
 				-- check sequence number for special values
 				IF (pkt_in_.seq_nr_ < 0) THEN
 					-- 
-					SELECT (pkt_in_.seq_nr_) OF
-						-- 
-						CASE (RI_SEQ_STRJD):
-							log_info(LOG_PFIX + 'Download start')
-							log_warn(LOG_PFIX + 'Trajectory downloading not supported')
-
-						-- 
-						CASE (RI_SEQ_STRJS):
-							log_info(LOG_PFIX + 'Stream start')
-							log_warn(LOG_PFIX + 'Trajectory stream start unhandled, ignoring point')
-
-						-- 
-						CASE (RI_SEQ_ETRAJ):
-							log_info(LOG_PFIX + 'Trajectory end')
-							log_warn(LOG_PFIX + 'Trajectory end unhandled, not supported')
-
-						-- 
-						CASE (RI_SEQ_STPRJ):
-							log_info(LOG_PFIX + 'Trajectory stop')
-							-- cancel motion (if any)
-							CANCEL
-							stat_ = req_next_(pkt_in_, pkt_out_, sock_fd_)
-							IF stat_ <> 0 THEN
-								-- can't continue
-								log_error_a(LOG_PFIX + 'Failed to ack stop, err:', stat_)
-								GOTO exit_discon
-							ENDIF
-
-						-- unknown special sequence nr
-						ELSE:
-							log_warn_a(LOG_PFIX + 'unknown seq nr:', pkt_in_.seq_nr_)
-							log_warn(LOG_PFIX + 'please report')
-
-					ENDSELECT
-
-
+					--SELECT (pkt_in_.seq_nr_) OF
+						---- 
+						--CASE (RI_SEQ_STRJD):
+							--log_info(LOG_PFIX + 'Download start')
+							--log_warn(LOG_PFIX + 'Trajectory downloading not supported')
+--
+						---- 
+						--CASE (RI_SEQ_STRJS):
+							--log_info(LOG_PFIX + 'Stream start')
+							--log_warn(LOG_PFIX + 'Trajectory stream start unhandled, ignoring point')
+--
+						---- 
+						--CASE (RI_SEQ_ETRAJ):
+							--log_info(LOG_PFIX + 'Trajectory end')
+							--log_warn(LOG_PFIX + 'Trajectory end unhandled, not supported')
+--
+						---- 
+						--CASE (RI_SEQ_STPRJ):
+							--log_info(LOG_PFIX + 'Trajectory stop')
+							---- cancel motion (if any)
+							--CANCEL
+							--stat_ = req_next_(pkt_in_, pkt_out_, sock_fd_)
+							--IF stat_ <> 0 THEN
+								---- can't continue
+								--log_error_a(LOG_PFIX + 'Failed to ack stop, err:', stat_)
+								--GOTO exit_discon
+							--ENDIF
+--
+						---- unknown special sequence nr
+						--ELSE:
+							--log_warn_a(LOG_PFIX + 'unknown seq nr:', pkt_in_.seq_nr_)
+							--log_warn(LOG_PFIX + 'please report')
+--
+					--ENDSELECT
+----
+--
 				ELSE
 
 					-- notify ROS node we want a new trajectory node
-					stat_ = req_next_(pkt_in_, pkt_out_, sock_fd_)
-					IF (stat_ <> 0) THEN
-						-- can't continue
-						log_error_a(LOG_PFIX + 'req_next err:', stat_)
-						GOTO exit_discon
-					ENDIF
+					-- stat_ = req_next_(pkt_in_, pkt_out_, sock_fd_)
+					-- IF (stat_ <> 0) THEN
+					-- 	-- can't continue
+					-- 	log_error_a(LOG_PFIX + 'req_next err:', stat_)
+					-- 	GOTO exit_discon
+					-- ENDIF
 
 					-- 
 					stat_ = exec_move_(pkt_in_, cfg_)
@@ -355,7 +349,7 @@ BEGIN
 			ELSE
 				-- no packets waiting; and no motion in progress,
 				-- sleep a little (1/T)
-				DELAY sleep_time_
+				-- DELAY sleep_time_
 
 			ENDIF
 

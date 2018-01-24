@@ -141,58 +141,59 @@ VAR
 	stat__     : INTEGER
 	array_sz__ : INTEGER
 BEGIN
-	--
-	i__ = 0
-	stat__ = 0
-	array_sz__ = ARRAY_LEN(this.joint_data_)
-
-	-- make sure pkt len is correct
-	IF (this.msg_type_ = RI_MT_JTRAJP) THEN
-		this.length_ = (RI_SZ_HDR + RI_SZB_TRAJP)
-	ENDIF
-
-	-- write out all fields ..
-	WRITE fd(this.length_)
-	stat__ = IO_STATUS(fd)
-	IF stat__ <> 0 THEN RETURN (-stat__); ENDIF
-
-	WRITE fd(this.msg_type_)
-	stat__ = IO_STATUS(fd)
-	IF stat__ <> 0 THEN RETURN (-stat__); ENDIF
-
-	WRITE fd(this.comm_type_)
-	stat__ = IO_STATUS(fd)
-	IF stat__ <> 0 THEN RETURN (-stat__); ENDIF
-
-	WRITE fd(this.reply_type_)
-	stat__ = IO_STATUS(fd)
-	IF stat__ <> 0 THEN RETURN (-stat__); ENDIF
-
-	WRITE fd(this.seq_nr_)
-	stat__ = IO_STATUS(fd)
-	IF stat__ <> 0 THEN RETURN (-stat__); ENDIF
-
-	-- now the array
-	FOR i__ = 1 TO array_sz__ DO
-		WRITE fd(this.joint_data_[i__])
-
-		-- check
-		stat__ = IO_STATUS(fd)
-		IF stat__ <> 0 THEN RETURN (-stat__); ENDIF
-	ENDFOR
-
-	-- 
-	IF (this.msg_type_ = RI_MT_JTRAJP) THEN
-		WRITE fd(this.velocity_)
-		stat__ = IO_STATUS(fd)
-		IF stat__ <> 0 THEN RETURN (-stat__); ENDIF
-
-		WRITE fd(this.duration_)
-		stat__ = IO_STATUS(fd)
-		IF stat__ <> 0 THEN RETURN (-stat__); ENDIF
-	ENDIF
+	
+	--i__ = 0
+	--stat__ = 0
+	--array_sz__ = ARRAY_LEN(this.joint_data_)
+--
+	---- make sure pkt len is correct
+	--IF (this.msg_type_ = RI_MT_JTRAJP) THEN
+		--this.length_ = (RI_SZ_HDR + RI_SZB_TRAJP)
+	--ENDIF
+--
+	---- write out all fields ..
+	--WRITE fd(this.length_)
+	--stat__ = IO_STATUS(fd)
+	--IF stat__ <> 0 THEN RETURN (-stat__); ENDIF
+		--
+	--WRITE fd(this.msg_type_)
+	--stat__ = IO_STATUS(fd)
+	--IF stat__ <> 0 THEN RETURN (-stat__); ENDIF
+--
+	--WRITE fd(this.comm_type_)
+	--stat__ = IO_STATUS(fd)
+	--IF stat__ <> 0 THEN RETURN (-stat__); ENDIF
+--
+	--WRITE fd(this.reply_type_)
+	--stat__ = IO_STATUS(fd)
+	--IF stat__ <> 0 THEN RETURN (-stat__); ENDIF
+--
+	--WRITE fd(this.seq_nr_)
+	--stat__ = IO_STATUS(fd)
+	--IF stat__ <> 0 THEN RETURN (-stat__); ENDIF
+--
+	---- now the array
+	--FOR i__ = 1 TO array_sz__ DO
+		--WRITE fd(this.joint_data_[i__])
+--
+		---- check
+		--stat__ = IO_STATUS(fd)
+		--IF stat__ <> 0 THEN RETURN (-stat__); ENDIF
+	--ENDFOR
+--
+	---- 
+	--IF (this.msg_type_ = RI_MT_JTRAJP) THEN
+		--WRITE fd(this.velocity_)
+		--stat__ = IO_STATUS(fd)
+		--IF stat__ <> 0 THEN RETURN (-stat__); ENDIF
+--
+		--WRITE fd(this.duration_)
+		--stat__ = IO_STATUS(fd)
+		--IF stat__ <> 0 THEN RETURN (-stat__); ENDIF
+	--ENDIF
 
 	-- .. and end with a CR
+	WRITE fd(1) -- ACKNOWLEDGEMENT (4byte)
 	WRITE fd(CR)
 
 	-- done
