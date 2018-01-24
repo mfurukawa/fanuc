@@ -490,7 +490,7 @@ BEGIN
 	--ENDIF
 
 	-- sync
-	WAIT FOR (FLG[cfg.f_msm_rdy] = ON)
+	--WAIT FOR (FLG[cfg.f_msm_rdy] = ON)
 
 	-- setup registers
 	-- init position
