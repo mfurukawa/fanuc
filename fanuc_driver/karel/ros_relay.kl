@@ -60,7 +60,7 @@ PROGRAM ros_relay
 -- 
 --------------------------------------------------------------------------------
 %ALPHABETIZE
-%COMMENT = 'delay 20000'
+%COMMENT = 'MFr13'
 %NOBUSYLAMP
 %NOLOCKGROUP
 %NOPAUSE = COMMAND + TPENABLE + ERROR
@@ -183,7 +183,14 @@ ROUTINE send_err_(pkt_in : ind_pkt_t; pkt_out : ind_pkt_t; sock_fd : FILE) : INT
 BEGIN
 	-- Masahiro Furukawa June 27, 2017
 	-- Masahiro Furukawa Jan 24, 2018
-	
+    -- Masahiro Furukawa June 27, 2017
+    
+    log_info(LOG_PFIX + 'Waiting for TAG 10...')
+    DELAY 10000
+    log_info(LOG_PFIX + 'Waiting for TAG 5...')
+    DELAY 10000
+    log_info(LOG_PFIX + 'ready...')
+   
 	-- check config
 	stat_ = check_cfg_(cfg_)
 	IF (stat_ <> CFG_OK) THEN
@@ -207,11 +214,14 @@ BEGIN
 
 
 	-- enable log output
-	IF (cfg_.um_clear) THEN log_clear; ENDIF
+	--IF (cfg_.um_clear) THEN log_clear; ENDIF
 
 
 	-- init server socket
 	stat_ = ssock_ctor(sock_, cfg_.s_tcp_nr , cfg_.s_tag_nr)
+	WRITE TPDISPLAY('         cfg_.s_tcp_nr:', cfg_.s_tcp_nr, CR)	
+	WRITE TPDISPLAY('         cfg_.s_tag_nr:', cfg_.s_tag_nr, CR)
+	
 	IF (stat_ <> 0) THEN
 		IF (stat_ = TAG_CONF_ERR) THEN
 			log_error_a(LOG_PFIX + 'cfg err, TAG idx:', cfg_.s_tag_nr)
@@ -224,38 +234,52 @@ BEGIN
 
 
 	-- init incoming packet
-	stat_ = ipkt_ctor(pkt_in_)
+	stat_ = ipkt_ctor(pkt_in_)	
+	WRITE TPDISPLAY('         stat_ = ipkt_ctor(pkt_in_)', CR)
 
 
 	-- init reply packet
 	stat_ = ipkt_ctor(pkt_out_)
-	-- setup fields: we reply with JOINT_POSITION packets
-	USING pkt_out_ DO
-		length_     = (RI_SZB_JPOS)
-		msg_type_   = RI_MT_JOINTP
-		comm_type_  = RI_CT_SVCRPL -- TODO: is this the correct reply type?
-		reply_type_ = RI_RT_SUCC
-		-- rest is set by ctor
-	ENDUSING
+	---- setup fields: we reply with JOINT_POSITION packets
+	--USING pkt_out_ DO
+		--length_     = (RI_SZB_JPOS)
+		--msg_type_   = RI_MT_JOINTP
+		--comm_type_  = RI_CT_SVCRPL -- TODO: is this the correct reply type?
+		--reply_type_ = RI_RT_SUCC
+		---- rest is set by ctor
+	--ENDUSING
 
 
 	-- make sure socket is closed
 	-- don t care about result
-	stat_ = ssock_dconnf(sock_)
+	stat_ = ssock_dconnf(sock_)	
+	WRITE TPDISPLAY('         stat_ =ssock_dconnf(sock_)	', CR)
 
 
 	-- 
 	WHILE (NOT shutdwn_req_) DO
+		WRITE TPDISPLAY('         WHILE (NOT shutdwn_req_) DO #1', CR)
 
 		-- inform user
 		log_info(LOG_PFIX + 'Waiting for ROS traj relay')
 
+		
+		
+		---- Masahiro Furukawa : FOUND ERROR HERE Jan 26, 2018
+		--MSG_CONNECT('S4:', stat_)
+		--WRITE TPDISPLAY('        MSG_CONNECT(S4:, stat_)', CR)
+		
+		
+		
 		-- set socket in 'binary mode' (unformatted)
 		-- KAREL Reference Manual, MARRC75KR07091E Rev C, sec 7.3.1
-		SET_FILE_ATR(sock_fd_, ATR_UF)
+		SET_FILE_ATR(sock_fd_, ATR_UF)		
+		WRITE TPDISPLAY('         SET_FILE_ATR(sock_fd_, ATR_UF)', CR)
 
 		-- wait for connection
 		stat_ = ssock_accpt2(sock_, sock_fd_)
+		WRITE TPDISPLAY('          stat_ = ssock_accpt2(sock_, sock_fd_)', CR)
+
 		IF (stat_ <> 0) THEN
 			log_error_a(LOG_PFIX + 'sock_accept err:', stat_)
 			-- can't continue
@@ -267,11 +291,12 @@ BEGIN
 
 		-- got client, start relay loop
 		WHILE (NOT shutdwn_req_) DO
-
-			-- get new packet from the socket
-			-- TODO: this assumes 1 packet per iteration (ok for now)
+			WRITE TPDISPLAY('         WHILE (NOT shutdwn_req_) DO #2', CR)
 			
-			stat_ = ipkt_checkfd(sock_fd_, pkt_in_)
+			-- get new packet from the socket
+			-- TODO: this assumes 1 packet per iteration (ok for now)			
+			stat_ = ipkt_checkfd(sock_fd_, pkt_in_)			
+			WRITE TPDISPLAY('         ipkt_checkfd(sock_fd_, pkt_in_)', CR)
 			
 			IF (stat_ < 0) THEN
 				log_error_a(LOG_PFIX + 'check_socket err:', stat_)

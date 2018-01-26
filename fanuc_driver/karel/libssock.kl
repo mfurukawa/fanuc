@@ -45,8 +45,10 @@ PROGRAM libssock
 -- 
 --------------------------------------------------------------------------------
 %NOLOCKGROUP
+%RWACCESS
+%STACKSIZE = 4000 
 %NOPAUSE= COMMAND + TPENABLE + ERROR
-%COMMENT = 'r1'
+%COMMENT = 'MFr13'
 -- Masahiro Furukawa
 -- June 6, 2017
 -- p.107
@@ -172,13 +174,18 @@ ROUTINE ssock_accept
 VAR
 	stat__ : INTEGER
 BEGIN
+		WRITE TPDISPLAY('         ROUTINE ssock_accept', CR)
 	stat__ = 0
 	IF this.connected_ THEN
+		WRITE TPDISPLAY('         S_ACPT_ERR and return', CR)
 		RETURN (S_ACPT_ERR)
 	ENDIF
 
+	WRITE TPDISPLAY('         this.tag_str ',this.tag_str_ , CR);
 	-- msg_connect only returns after a client connects to the port
+	-- Masahiro Furukawa : binary mode connection brings controller freeze... 
 	MSG_CONNECT(this.tag_str_, stat__)
+	WRITE TPDISPLAY('        MSG_CONNECT(this.tag_str_, stat__)', CR)
 
 	IF stat__ = 0 THEN
 		this.connected_ = TRUE
@@ -223,15 +230,19 @@ VAR
 	tmp__  : STRING[3]
 	stat__ : INTEGER
 BEGIN
+	WRITE TPDISPLAY('       IF this.connected_ = FALSE THEN ', this.connected_,  CR)
 	IF this.connected_ = FALSE THEN
 		RETURN (S_NOTCON_ERR)
 	ENDIF
 
 	-- TODO: why is this temporary variable necessary?
 	tmp__ = this.tag_str_
+	WRITE TPDISPLAY('       tmp__ = this.tag_str_ ', tmp__, CR)
 	OPEN FILE fd(mode, tmp__)
+	WRITE TPDISPLAY('       OPEN FILE fd(mode, tmp__)', CR)
 
 	stat__ = IO_STATUS(fd)
+	WRITE TPDISPLAY('       stat__ = IO_STATUS(fd)', CR)
 	RETURN (-stat__)
 END ssock_ofd
 
@@ -261,18 +272,22 @@ ROUTINE ssock_accpt2
 VAR
 	stat__ : INTEGER
 BEGIN
+		WRITE TPDISPLAY('         ROUTINE ssock_accpt2', CR)
 	stat__ = 0
 	-- use other routine
 	stat__ = ssock_accept(this)
+		WRITE TPDISPLAY('         stat__ = ssock_accept(this)', CR)
 
 	-- make sure it succeeded
 	IF stat__ <> 0 THEN
 		-- stat already < 0 from ssock_accept
+		WRITE TPDISPLAY('        stat already < 0 from ssock_accept', CR)
 		RETURN (stat__)
 	ENDIF
 
 	-- now open fd, read / write
 	stat__ = ssock_ofd(this, fd, 'RW')
+	WRITE TPDISPLAY('        stat__ = ssock_ofd(this, fd, RW)', CR)
 
 	-- done (stat already < 0 from ssock_ofd)
 	RETURN (stat__)

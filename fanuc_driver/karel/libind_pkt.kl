@@ -48,7 +48,7 @@ PROGRAM libind_pkt
 --------------------------------------------------------------------------------
 %NOLOCKGROUP
 %NOPAUSE= COMMAND + TPENABLE + ERROR
-%COMMENT = 'r1'
+%COMMENT = 'MFr15'
 
 
 
@@ -118,18 +118,18 @@ BEGIN
 	FOR d__ = 1 TO len__ DO
 		this.joint_data_[d__] = 0.0
 	ENDFOR
-
-	-- set up ROS-Industrial packet fields
-	USING this DO
-		-- default to JOINT_POSITION size
-		length_     = (RI_SZB_JPOS)
-		msg_type_   =  0
-		comm_type_  =  0
-		reply_type_ =  0
-		seq_nr_     =  0
-		duration_   =  0.0
-		velocity_   =  0.0
-	ENDUSING
+--
+	---- set up ROS-Industrial packet fields
+	--USING this DO
+		---- default to JOINT_POSITION size
+		--length_     = (RI_SZB_JPOS)
+		--msg_type_   =  0
+		--comm_type_  =  0
+		--reply_type_ =  0
+		--seq_nr_     =  0
+		--duration_   =  0.0
+		--velocity_   =  0.0
+	--ENDUSING
 END ipkt_reset
 
 
@@ -162,7 +162,8 @@ BEGIN
 	--
 	i__ = 0
 	stat__ = 0
-	array_sz__ = 6
+	array_sz__ = 6 --ARRAY_LEN(this.joint_data_)
+
 	
 	-- now the array
 	FOR i__ = 1 TO array_sz__ DO
@@ -172,6 +173,11 @@ BEGIN
 		stat__ = IO_STATUS(fd)
 		IF stat__ <> 0 THEN RETURN (-stat__); ENDIF
 	ENDFOR
+
+	-- read footer. (dummy)
+	READ fd(i__)
+	stat__ = IO_STATUS(fd)
+	IF stat__ <> 0 THEN RETURN (-stat__); ENDIF
 
 	RETURN (-stat__)
 END ipkt_dsrlse
@@ -187,16 +193,21 @@ BEGIN
 
 	bytes_ahd__ = 0
 	stat__      = 0
-
-	-- check nr of bytes in buffer
+	
+	
+	WRITE TPDISPLAY('         ROUTINE ipkt_checkfd', CR)
 	BYTES_AHEAD(fd, bytes_ahd__, stat__)
+	WRITE TPDISPLAY('         BYTES_AHEAD(fd, bytes_ahd__, stat__)', CR)
 	IF stat__ <> 0 THEN RETURN (-stat__); ENDIF
 
 	-- is there enough for a packet?
-	IF (bytes_ahd__ >= (RI_SZB_JPOS)) THEN
+	IF (bytes_ahd__ >= 30) THEN
+		WRITE TPDISPLAY('         IF (bytes_ahd__  >= 30) THEN', CR)
 
 		-- deserialise
 		stat__ = ipkt_dsrlse(pkt, fd)
+		WRITE TPDISPLAY('         stat__ = ipkt_dsrlse(pkt, fd)', CR)
+
 		
 		IF stat__ <> 0 THEN RETURN (-ABS(stat__)); ENDIF
 

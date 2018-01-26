@@ -186,7 +186,7 @@ BEGIN
 
 
 	-- enable log output
-	IF (cfg_.um_clear) THEN log_clear; ENDIF
+	--IF (cfg_.um_clear) THEN log_clear; ENDIF
 
 
 	-- init packet
